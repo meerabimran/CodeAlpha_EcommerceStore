@@ -1,7 +1,9 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import dns from 'node:dns';
 import mongoose from 'mongoose';
+import defaultProducts from './data/products.js';
 
 dotenv.config();
 
@@ -15,50 +17,18 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173' }));
 app.use(express.json());
 
-const defaultProducts = [
-  {
-    name: 'Wireless Headphones',
-    price: 89.99,
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500',
-    category: 'Electronics',
-  },
-  {
-    name: 'Running Shoes',
-    price: 120,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500',
-    category: 'Fashion',
-  },
-  {
-    name: 'Smart Watch',
-    price: 199.99,
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500',
-    category: 'Electronics',
-  },
-  {
-    name: 'Leather Backpack',
-    price: 75.5,
-    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500',
-    category: 'Fashion',
-  },
-  {
-    name: 'Coffee Maker',
-    price: 55,
-    image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500',
-    category: 'Home',
-  },
-  {
-    name: 'Sunglasses',
-    price: 35.99,
-    image: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500',
-    category: 'Fashion',
-  },
-];
-
 const productSchema = new mongoose.Schema({
+  slug: { type: String, trim: true, unique: true, sparse: true },
   name: { type: String, required: true, trim: true, unique: true },
   price: { type: Number, required: true, min: 0 },
-  image: { type: String, required: true },
+  image: { type: String },
   category: { type: String, required: true, trim: true },
+  rating: { type: Number, min: 0, max: 5, default: 4.8 },
+  stock: { type: Number, min: 0, default: 1 },
+  badge: { type: String, default: '' },
+  tone: { type: String, default: 'sage' },
+  icon: { type: String, default: '✳' },
+  description: { type: String, default: '' },
 });
 
 const Product = mongoose.model('Product', productSchema);
@@ -74,10 +44,10 @@ app.get('/api/products', async (req, res) => {
 
 app.post('/api/products/seed', async (req, res) => {
   await Product.bulkWrite(
-    defaultProducts.map((product) => ({
+    defaultProducts.map(({ id: slug, ...product }) => ({
       updateOne: {
-        filter: { name: product.name },
-        update: { $setOnInsert: product },
+        filter: { slug },
+        update: { $setOnInsert: { ...product, slug } },
         upsert: true,
       },
     })),
@@ -100,12 +70,26 @@ async function startServer() {
     throw new Error('MONGO_URI is required. Set it in server/.env.');
   }
 
+  const dnsServers = process.env.MONGO_DNS_SERVERS
+    ?.split(',')
+    .map((server) => server.trim())
+    .filter(Boolean);
+
+  if (dnsServers?.length) {
+    dns.setServers(dnsServers);
+  }
+
   await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 10000 });
 
-  const productCount = await Product.estimatedDocumentCount();
-  if (productCount === 0) {
-    await Product.insertMany(defaultProducts);
-  }
+  await Product.bulkWrite(
+    defaultProducts.map(({ id: slug, ...product }) => ({
+      updateOne: {
+        filter: { slug },
+        update: { $setOnInsert: { ...product, slug } },
+        upsert: true,
+      },
+    })),
+  );
 
   app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);

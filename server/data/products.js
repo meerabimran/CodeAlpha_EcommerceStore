@@ -1,0 +1,12 @@
+const products = [
+  { id: 'arc-table-lamp', name: 'Arc Table Lamp', category: 'Home', price: 68, rating: 4.9, stock: 12, badge: 'A GOOD LIGHT', tone: 'amber', icon: '◉', description: 'A warm, sculptural glow for the slow evenings and early mornings. The Arc brings a softer kind of light to a favorite corner.' },
+  { id: 'everyday-tote', name: 'The Everyday Tote', category: 'Accessories', price: 42, rating: 4.8, stock: 18, badge: 'BESTSELLER', tone: 'sage', icon: '▱', description: 'Room for the market, a book, and a few things you didn’t plan on. A dependable everyday carry in sturdy, soft cotton canvas.' },
+  { id: 'weekend-ceramic-set', name: 'Weekend Ceramic Set', category: 'Kitchen', price: 54, rating: 5, stock: 8, badge: '', tone: 'rose', icon: '◒', description: 'Two hand-finished cups made for lingering over coffee. Each one has its own small variations and a shape that feels just right.' },
+  { id: 'field-notes-journal', name: 'Field Notes Journal', category: 'Stationery', price: 24, rating: 4.9, stock: 30, badge: 'SMALL JOY', tone: 'blue', icon: '▤', description: 'A quiet place for plans, passing thoughts, and the little things worth remembering. Lay-flat pages with a tactile recycled cover.' },
+  { id: 'soft-day-throw', name: 'Soft Day Throw', category: 'Home', price: 86, rating: 4.8, stock: 6, badge: '', tone: 'clay', icon: '▨', description: 'A lightweight, generously sized throw with a soft hand feel. The one you’ll reach for on the sofa, at the window, and everywhere in between.' },
+  { id: 'little-loop-vase', name: 'Little Loop Vase', category: 'Home', price: 38, rating: 4.7, stock: 0, badge: '', tone: 'lilac', icon: '♧', description: 'A small sculptural vase that looks lovely with a single stem or simply as it is. Finished by hand in a softly textured glaze.' },
+  { id: 'daily-carry-pouch', name: 'Daily Carry Pouch', category: 'Accessories', price: 28, rating: 4.6, stock: 14, badge: '', tone: 'butter', icon: '▰', description: 'A little order for all the little things. This compact zip pouch keeps daily essentials close and easy to find.' },
+  { id: 'slow-morning-mug', name: 'Slow Morning Mug', category: 'Kitchen', price: 32, rating: 4.9, stock: 21, badge: 'CUSTOMER LOVE', tone: 'mint', icon: '◔', description: 'A comfortable, generous mug for taking your time. Wheel-thrown ceramic with a gently curved handle and a satin glaze.' },
+];
+
+export default products;
