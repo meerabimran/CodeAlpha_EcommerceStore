@@ -45,8 +45,8 @@ npm run build
 
 Vercel serves the React storefront and the Express API from the same deployment. MongoDB must still be hosted separately; a local MongoDB instance is not reachable from Vercel.
 
-1. Import this GitHub repository in Vercel and keep the **Root Directory** set to `.` (the repository root).
-2. Leave the build and output settings at their defaults from `vercel.json`. The project uses the **Other** framework preset, `npm run build --prefix client`, and `client/dist` as the output directory.
+1. Import this GitHub repository in Vercel and set **Root Directory** to the repository root (`.`). Do not set it to `client`: the Vercel function and `vercel.json` are at the repository root, alongside `client/` and `server/`.
+2. In **Project Settings → Build and Deployment**, use the settings from the root `vercel.json`: install command `npm install --prefix client && npm install --prefix server`, build command `npm run build --prefix client`, and output directory `client/dist`. These commands are relative to the repository root.
 3. In **Project Settings → Environment Variables**, add `MONGO_URI` for Production (and Preview too, if previews should load products). Use a MongoDB Atlas or other remotely reachable connection string; never use `mongodb://127.0.0.1` or `mongodb://localhost` on Vercel. Ensure the database user and network access settings allow Vercel to connect.
 4. Optionally add `MONGO_DNS_SERVERS` only if your database hostname requires custom DNS resolvers.
 5. Deploy, then check the deployment's `/` page and `/api/products` endpoint.
@@ -55,8 +55,8 @@ The Vercel serverless API is in `api/[...path].js`; the Vite build serves the cl
 
 ### Vercel troubleshooting
 
-- **`npm ci --prefix client && npm ci --prefix server` exits with 1 saying no lockfile exists:** Vercel is running the command from the wrong directory. In **Project Settings → Build and Deployment**, set **Root Directory** to the repository root (`.`), not `client`, and use the install/build settings from the root `vercel.json` rather than a project-level command override. The install command expects `client/package-lock.json` and `server/package-lock.json` relative to the repository root; the API function is also at that root.
-- **The deployment log shows an old commit:** redeploy the latest `main` commit after correcting the Root Directory. The latest pushed commit is shown by `git log -1 --oneline`.
+- **Install fails with a path like `/vercel/path0/client/client/package.json`:** Vercel's **Root Directory** is `client`, while the install command prefixes `client` relative to the repository root. Set **Root Directory** to `.`. Do not remove the prefix from the command: the project also needs to install the server dependencies and include the root-level API function.
+- **Vercel logs a commit older than the latest deployment config:** trigger a new deployment from the latest `main` commit after correcting the Root Directory. The deployment log should use the current `main` commit.
 - **Build fails before deployment:** confirm the Vercel Root Directory is `.` and the Node.js version is 22 or newer. The client uses Vite 8, which requires a recent Node.js release.
 - **`/` works but `/api/products` returns `500`:** add `MONGO_URI` to the environment for the deployment's environment, then redeploy. Check Vercel Function logs for the database connection error.
 - **MongoDB connection times out:** check that the URI is correct, the database user has access, and the database network access rules permit connections from Vercel.
