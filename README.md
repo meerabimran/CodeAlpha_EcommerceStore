@@ -40,3 +40,9 @@ cd client
 npm run lint
 npm run build
 ```
+
+## Deploy the storefront to GitHub Pages
+
+The `Deploy storefront to GitHub Pages` workflow builds and publishes the React client whenever changes are pushed to `main`, or when started manually from the Actions tab. In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**. After the first successful workflow run, the storefront will be available at <https://meerabimran.github.io/CodeAlpha_EcommerceStore/>.
+
+GitHub Pages hosts only the static storefront; it does not run the Express API or MongoDB. To load products in the deployed storefront, deploy the API and database separately, then add a repository Actions variable named `VITE_API_BASE_URL` with the API's public origin (for example, `https://api.example.com`). Configure the API's `CLIENT_ORIGIN` to `https://meerabimran.github.io` so it accepts storefront requests. The storefront can still be deployed without this variable, but catalog requests will fail until an API is available.

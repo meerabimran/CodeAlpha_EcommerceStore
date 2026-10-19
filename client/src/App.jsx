@@ -13,7 +13,8 @@ function CatalogProvider({ children }) {
   const [error, setError] = useState('')
   const loadCatalog = useCallback(async (signal) => {
     try {
-      const response = await fetch('/api/products', { signal })
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || ''
+      const response = await fetch(`${apiBaseUrl}/api/products`, { signal })
       if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`)
       const items = await response.json()
       if (!Array.isArray(items)) throw new Error('The catalog response was invalid.')
@@ -148,5 +149,5 @@ function AppShell() {
   return <><Header/><Routes><Route path="/" element={<HomePage/>}/><Route path="/products" element={<ProductsPage/>}/><Route path="/products/:id" element={<ProductPage/>}/><Route path="/cart" element={<CartPage/>}/><Route path="/login" element={<LoginPage/>}/><Route path="/register" element={<LoginPage register/>}/><Route path="/checkout" element={<CheckoutPage/>}/><Route path="*" element={<main className="wrap page-content empty-state"><span>✳</span><h1>That page is off exploring.</h1><Link className="button button-dark" to="/">Back to the home page <span>↗</span></Link></main>}/></Routes><Footer/></>
 }
 
-function App() { return <BrowserRouter><CatalogProvider><CartProvider><AppShell/></CartProvider></CatalogProvider></BrowserRouter> }
+function App() { return <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}><CatalogProvider><CartProvider><AppShell/></CartProvider></CatalogProvider></BrowserRouter> }
 export default App
