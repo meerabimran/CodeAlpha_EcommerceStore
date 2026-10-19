@@ -70,8 +70,9 @@ app.use((error, req, res, next) => {
 let databaseConnection;
 
 export async function connectDatabase() {
-  if (!process.env.MONGO_URI) {
-    throw new Error('MONGO_URI is required.');
+  const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  if (!mongoUri) {
+    throw new Error('MONGO_URI or MONGODB_URI is required.');
   }
 
   const dnsServers = process.env.MONGO_DNS_SERVERS
@@ -84,7 +85,7 @@ export async function connectDatabase() {
   }
 
   if (!databaseConnection) {
-    databaseConnection = mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 10000 })
+    databaseConnection = mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 })
       .then(async () => {
         await Product.bulkWrite(
           defaultProducts.map(({ id: slug, ...product }) => ({

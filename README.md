@@ -47,7 +47,7 @@ Vercel serves the React storefront and the Express API from the same deployment.
 
 1. Import this GitHub repository in Vercel and set **Root Directory** to the repository root (`.`). Do not set it to `client`: the Vercel function and `vercel.json` are at the repository root, alongside `client/` and `server/`.
 2. Let Vercel use the root `vercel.json` settings. If you have dashboard-level overrides, set the install command to `npm ci --prefix client && npm ci --prefix server`, the build command to `npm run build --prefix client`, and the output directory to `client/dist`. These commands are relative to the repository root.
-3. In **Project Settings → Environment Variables**, add `MONGO_URI` for Production (and Preview too, if previews should load products). Use a MongoDB Atlas or other remotely reachable connection string; never use `mongodb://127.0.0.1` or `mongodb://localhost` on Vercel. Ensure the database user and network access settings allow Vercel to connect.
+3. In **Project Settings → Environment Variables**, add `MONGO_URI` for Production (and Preview too, if previews should load products). The backend also accepts the existing name `MONGODB_URI`. Use a MongoDB Atlas or other remotely reachable connection string; never use `mongodb://127.0.0.1` or `mongodb://localhost` on Vercel. Ensure the database user and network access settings allow Vercel to connect.
 4. Optionally add `MONGO_DNS_SERVERS` only if your database hostname requires custom DNS resolvers.
 5. Deploy, then check the deployment's `/` page and `/api/products` endpoint.
 
@@ -61,7 +61,7 @@ The root `package.json` marks Vercel's `api/[...path].js` function as an ES modu
 - **Vercel logs a commit older than the latest deployment config:** trigger a new deployment from the latest `main` commit after correcting the Root Directory. The deployment log should use the current `main` commit.
 - **`npm warn Unknown env config "cache-dir"` appears:** this warning is not the deployment failure. The fatal `client/client/package.json` error indicates the Root Directory is still set incorrectly; fix it and redeploy.
 - **Build fails before deployment:** confirm the Vercel Root Directory is `.` and the Node.js version is 22 or newer. The client uses Vite 8, which requires a recent Node.js release.
-- **`/` works but `/api/products` returns `500`:** add `MONGO_URI` to the environment for the deployment's environment, then redeploy. Check Vercel Function logs for the database connection error.
+- **`/` works but `/api/products` returns `500`:** add `MONGO_URI` (or `MONGODB_URI`) to the environment for the deployment's environment, then redeploy. Check Vercel Function logs for the database connection error.
 - **MongoDB connection times out:** check that the URI is correct, the database user has access, and the database network access rules permit connections from Vercel.
 - **`/api/products` returns `404`:** ensure the deployment includes the root `api/[...path].js` function and uses the repository root as its Vercel Root Directory.
 - **A change to environment variables has no effect:** trigger a new deployment; environment changes apply to new deployments.
