@@ -4,6 +4,8 @@ import express from 'express';
 import dns from 'node:dns';
 import mongoose from 'mongoose';
 import defaultProducts from './data/products.js';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
 dotenv.config();
 
@@ -31,7 +33,7 @@ const productSchema = new mongoose.Schema({
   description: { type: String, default: '' },
 });
 
-const Product = mongoose.model('Product', productSchema);
+const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 
 app.get('/', (req, res) => {
   res.send('CodeAlpha API is running.');
@@ -65,9 +67,11 @@ app.use((error, req, res, next) => {
   res.status(500).json({ message: 'Internal server error.' });
 });
 
-async function startServer() {
+let databaseConnection;
+
+export async function connectDatabase() {
   if (!process.env.MONGO_URI) {
-    throw new Error('MONGO_URI is required. Set it in server/.env.');
+    throw new Error('MONGO_URI is required.');
   }
 
   const dnsServers = process.env.MONGO_DNS_SERVERS
@@ -79,18 +83,33 @@ async function startServer() {
     dns.setServers(dnsServers);
   }
 
-  await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 10000 });
+  if (!databaseConnection) {
+    databaseConnection = mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 10000 })
+      .then(async () => {
+        await Product.bulkWrite(
+          defaultProducts.map(({ id: slug, ...product }) => ({
+            updateOne: {
+              filter: { slug },
+              update: { $setOnInsert: { ...product, slug } },
+              upsert: true,
+            },
+          })),
+        );
+        return mongoose.connection;
+      })
+      .catch((error) => {
+        databaseConnection = undefined;
+        throw error;
+      });
+  }
 
-  await Product.bulkWrite(
-    defaultProducts.map(({ id: slug, ...product }) => ({
-      updateOne: {
-        filter: { slug },
-        update: { $setOnInsert: { ...product, slug } },
-        upsert: true,
-      },
-    })),
-  );
+  return databaseConnection;
+}
 
+export default app;
+
+async function startServer() {
+  await connectDatabase();
   app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
     console.log('MongoDB connected.');
@@ -101,8 +120,10 @@ mongoose.connection.on('error', (error) => {
   console.error('MongoDB connection error:', error);
 });
 
-startServer().catch(async (error) => {
-  console.error('Server startup failed:', error.message);
-  await mongoose.disconnect();
-  process.exitCode = 1;
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  startServer().catch(async (error) => {
+    console.error('Server startup failed:', error.message);
+    await mongoose.disconnect();
+    process.exitCode = 1;
+  });
+}

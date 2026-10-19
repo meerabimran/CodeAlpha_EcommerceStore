@@ -46,3 +46,7 @@ npm run build
 The `Deploy storefront to GitHub Pages` workflow builds and publishes the React client whenever changes are pushed to `main`, or when started manually from the Actions tab. In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**. After the first successful workflow run, the storefront will be available at <https://meerabimran.github.io/CodeAlpha_EcommerceStore/>.
 
 GitHub Pages hosts only the static storefront; it does not run the Express API or MongoDB. To load products in the deployed storefront, deploy the API and database separately, then add a repository Actions variable named `VITE_API_BASE_URL` with the API's public origin (for example, `https://api.example.com`). Configure the API's `CLIENT_ORIGIN` to `https://meerabimran.github.io` so it accepts storefront requests. The storefront can still be deployed without this variable, but catalog requests will fail until an API is available.
+
+## Deploy the full stack to Vercel
+
+Import this repository into Vercel with the repository root as the project root. The root `vercel.json` builds the client and routes `/api/*` to the Express serverless function. Add `MONGO_URI` in the Vercel project's environment variables using a MongoDB connection string reachable from Vercel; do not use `mongodb://127.0.0.1` for a hosted deployment. Optionally set `MONGO_DNS_SERVERS` if Atlas SRV DNS resolution requires custom resolvers. Deployments use the same origin for the storefront and API, so no `VITE_API_BASE_URL` is needed.
