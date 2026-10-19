@@ -51,12 +51,13 @@ Vercel serves the React storefront and the Express API from the same deployment.
 4. Optionally add `MONGO_DNS_SERVERS` only if your database hostname requires custom DNS resolvers.
 5. Deploy, then check the deployment's `/` page and `/api/products` endpoint.
 
-The root `package.json` marks Vercel's `api/[...path].js` function as an ES module so it can import the ES-module Express server. Vercel serves the Vite build and `vercel.json` falls back to the SPA entry point for client-side routes, while the API function handles `/api/*` requests. Because the storefront and API share an origin, no `VITE_API_BASE_URL` or `CLIENT_ORIGIN` setting is needed.
+The root `package.json` marks Vercel's `api/[...path].js` function as an ES module so it can import the ES-module Express server. `vercel.json` rewrites the storefront's client-side routes to the SPA entry point without capturing `/api/*`, which is handled by the serverless API function. Because the storefront and API share an origin, no `VITE_API_BASE_URL` or `CLIENT_ORIGIN` setting is needed.
 
 ### Vercel troubleshooting
 
 - **Install fails with a path like `/vercel/path0/client/client/package.json`:** Vercel's **Root Directory** is `client`, while the install command prefixes `client` relative to the repository root. Set **Root Directory** to `.`. Do not remove the prefixes from the command: the project also needs to install the server dependencies and include the root-level API function.
 - **`/api/products` returns `500 FUNCTION_INVOCATION_FAILED` with `ERR_REQUIRE_ESM`:** deploy the latest commit, which includes the root `package.json` declaring `"type": "module"`. Confirm Vercel's Root Directory is `.` so this manifest is included in the function bundle.
+- **`/api/products` returns storefront HTML instead of JSON:** deploy the latest `vercel.json`, which rewrites only the storefront routes and leaves `/api/*` to the API function.
 - **Vercel logs a commit older than the latest deployment config:** trigger a new deployment from the latest `main` commit after correcting the Root Directory. The deployment log should use the current `main` commit.
 - **`npm warn Unknown env config "cache-dir"` appears:** this warning is not the deployment failure. The fatal `client/client/package.json` error indicates the Root Directory is still set incorrectly; fix it and redeploy.
 - **Build fails before deployment:** confirm the Vercel Root Directory is `.` and the Node.js version is 22 or newer. The client uses Vite 8, which requires a recent Node.js release.

@@ -5,7 +5,27 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/products",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/products/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cart",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/register",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/checkout",
       "destination": "/index.html"
     }
   ]
