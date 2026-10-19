@@ -46,17 +46,18 @@ npm run build
 Vercel serves the React storefront and the Express API from the same deployment. MongoDB must still be hosted separately; a local MongoDB instance is not reachable from Vercel.
 
 1. Import this GitHub repository in Vercel and set **Root Directory** to the repository root (`.`). Do not set it to `client`: the Vercel function and `vercel.json` are at the repository root, alongside `client/` and `server/`.
-2. In **Project Settings → Build and Deployment**, use the settings from the root `vercel.json`: install command `npm install --prefix client && npm install --prefix server`, build command `npm run build --prefix client`, and output directory `client/dist`. These commands are relative to the repository root.
+2. Let Vercel use the root `vercel.json` settings. If you have dashboard-level overrides, set the install command to `npm ci --prefix client && npm ci --prefix server`, the build command to `npm run build --prefix client`, and the output directory to `client/dist`. These commands are relative to the repository root.
 3. In **Project Settings → Environment Variables**, add `MONGO_URI` for Production (and Preview too, if previews should load products). Use a MongoDB Atlas or other remotely reachable connection string; never use `mongodb://127.0.0.1` or `mongodb://localhost` on Vercel. Ensure the database user and network access settings allow Vercel to connect.
 4. Optionally add `MONGO_DNS_SERVERS` only if your database hostname requires custom DNS resolvers.
 5. Deploy, then check the deployment's `/` page and `/api/products` endpoint.
 
-The Vercel serverless API is in `api/[...path].js`; the Vite build serves the client, and `vercel.json` sends application routes to the SPA while preserving API routes. Because the storefront and API share an origin, no `VITE_API_BASE_URL` or `CLIENT_ORIGIN` setting is needed.
+The Vercel serverless API is in `api/[...path].js`; Vercel serves the Vite build and `vercel.json` falls back to the SPA entry point for client-side routes. The API function handles `/api/*` requests. Because the storefront and API share an origin, no `VITE_API_BASE_URL` or `CLIENT_ORIGIN` setting is needed.
 
 ### Vercel troubleshooting
 
-- **Install fails with a path like `/vercel/path0/client/client/package.json`:** Vercel's **Root Directory** is `client`, while the install command prefixes `client` relative to the repository root. Set **Root Directory** to `.`. Do not remove the prefix from the command: the project also needs to install the server dependencies and include the root-level API function.
+- **Install fails with a path like `/vercel/path0/client/client/package.json`:** Vercel's **Root Directory** is `client`, while the install command prefixes `client` relative to the repository root. Set **Root Directory** to `.`. Do not remove the prefixes from the command: the project also needs to install the server dependencies and include the root-level API function.
 - **Vercel logs a commit older than the latest deployment config:** trigger a new deployment from the latest `main` commit after correcting the Root Directory. The deployment log should use the current `main` commit.
+- **`npm warn Unknown env config "cache-dir"` appears:** this warning is not the deployment failure. The fatal `client/client/package.json` error indicates the Root Directory is still set incorrectly; fix it and redeploy.
 - **Build fails before deployment:** confirm the Vercel Root Directory is `.` and the Node.js version is 22 or newer. The client uses Vite 8, which requires a recent Node.js release.
 - **`/` works but `/api/products` returns `500`:** add `MONGO_URI` to the environment for the deployment's environment, then redeploy. Check Vercel Function logs for the database connection error.
 - **MongoDB connection times out:** check that the URI is correct, the database user has access, and the database network access rules permit connections from Vercel.
