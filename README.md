@@ -55,7 +55,8 @@ The Vercel serverless API is in `api/[...path].js`; the Vite build serves the cl
 
 ### Vercel troubleshooting
 
-- **`npm ci --prefix client && npm ci --prefix server` exits with 1:** the Vercel **Root Directory** is likely set to `client`. Change it to the repository root (`.`), because both `vercel.json` and the `api/` function are at the repository root, then redeploy.
+- **`npm ci --prefix client && npm ci --prefix server` exits with 1 saying no lockfile exists:** Vercel is running the command from the wrong directory. In **Project Settings → Build and Deployment**, set **Root Directory** to the repository root (`.`), not `client`, and use the install/build settings from the root `vercel.json` rather than a project-level command override. The install command expects `client/package-lock.json` and `server/package-lock.json` relative to the repository root; the API function is also at that root.
+- **The deployment log shows an old commit:** redeploy the latest `main` commit after correcting the Root Directory. The latest pushed commit is shown by `git log -1 --oneline`.
 - **Build fails before deployment:** confirm the Vercel Root Directory is `.` and the Node.js version is 22 or newer. The client uses Vite 8, which requires a recent Node.js release.
 - **`/` works but `/api/products` returns `500`:** add `MONGO_URI` to the environment for the deployment's environment, then redeploy. Check Vercel Function logs for the database connection error.
 - **MongoDB connection times out:** check that the URI is correct, the database user has access, and the database network access rules permit connections from Vercel.
